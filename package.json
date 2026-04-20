@@ -1,0 +1,68 @@
+{
+  "name": "vps-manager",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
+    "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
+    "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
+    "db:studio": "dotenv -e .env.local -- prisma studio",
+    "db:push": "dotenv -e .env.local -- prisma db push",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@node-rs/argon2": "^2.0.2",
+    "@prisma/client": "^5.22.0",
+    "@tanstack/react-query": "^5.62.7",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "ioredis": "^5.4.1",
+    "jose": "^5.9.6",
+    "next": "15.0.3",
+    "next-auth": "5.0.0-beta.25",
+    "otpauth": "^9.3.5",
+    "qrcode": "^1.5.4",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-hook-form": "^7.54.0",
+    "server-only": "^0.0.1",
+    "simple-git": "^3.27.0",
+    "stripe": "^22.0.2",
+    "ws": "^8.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@types/ssh2": "^1.15.5",
+    "@types/ws": "^8.5.13",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^5.22.0",
+    "ssh2": "^1.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "5.6.3"
+  },
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "node-pty"
+    ]
+  },
+  "optionalDependencies": {
+    "node-pty": "^1.1.0"
+  }
+}

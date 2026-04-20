@@ -1,0 +1,571 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  initials         String?
+  passwordHash     String
+  role             Role      @default(ADMIN)
+  totpSecret       String?
+  totpEnabled      Boolean   @default(false)
+  recoveryCodes    String[]
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  preferences      Json      @default("{}")
+  githubTokenEnc   String?
+  githubLogin      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  sessions         Session[]
+  activityLogs     ActivityLog[]
+  apiTokens        ApiToken[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  expiresAt    DateTime
+  userAgent    String?
+  ip           String?
+  lastSeenAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model ApiToken {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  tokenHash  String    @unique
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  scopes     String[]  @default([])
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum SiteStatus {
+  CREATING
+  ACTIVE
+  BUILDING
+  FAILED
+  PAUSED
+  DELETING
+}
+
+enum Runtime {
+  NODE
+  BUN
+  DENO
+  PYTHON
+  PHP
+  GO
+  RUST
+  RUBY
+  ELIXIR
+  STATIC
+  DOCKER
+}
+
+enum Framework {
+  NEXTJS
+  ASTRO
+  REMIX
+  SVELTEKIT
+  NUXT
+  VITE_REACT
+  VITE_VUE
+  VITE_SVELTE
+  GATSBY
+  DOCUSAURUS
+  HUGO
+  JEKYLL
+  ELEVENTY
+  STATIC
+  EXPRESS
+  FASTIFY
+  HONO
+  NESTJS
+  FASTAPI
+  DJANGO
+  FLASK
+  RAILS
+  LARAVEL
+  SYMFONY
+  WORDPRESS
+  DOCKER_COMPOSE
+  DOCKERFILE
+  CUSTOM
+}
+
+model Site {
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  name             String
+  description      String?
+  status           SiteStatus   @default(CREATING)
+  runtime          Runtime
+  framework        Framework
+  rootDirectory    String       @default(".")
+  installCommand   String?
+  buildCommand     String?
+  outputDirectory  String?
+  startCommand     String?
+  port             Int?
+  nodeVersion      String?
+  packageManager   String?
+  autoDeploy       Boolean      @default(true)
+  productionBranch String       @default("main")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  cpuUsage         Float        @default(0)
+  memUsage         Int          @default(0)
+  domainPrimary    String?
+  lastDeployAt     DateTime?
+  deployCount      Int          @default(0)
+
+  gitRepo          GitRepo?
+  deployments      Deployment[]
+  domains          Domain[]
+  envGroups        EnvGroup[]
+  logStreams       LogStream[]
+
+  @@index([status])
+}
+
+model GitRepo {
+  id            String   @id @default(cuid())
+  siteId        String   @unique
+  provider      String
+  owner         String
+  repo          String
+  defaultBranch String   @default("main")
+  authType      String
+  webhookSecret String?
+  webhookActive Boolean  @default(false)
+  lastSyncAt    DateTime?
+
+  site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+enum DeployStatus {
+  QUEUED
+  CLONING
+  INSTALLING
+  BUILDING
+  DEPLOYING
+  READY
+  ERROR
+  CANCELED
+  SUPERSEDED
+}
+
+enum DeployTarget {
+  PRODUCTION
+  PREVIEW
+}
+
+model Deployment {
+  id             String       @id @default(cuid())
+  siteId         String
+  target         DeployTarget
+  status         DeployStatus @default(QUEUED)
+  commitSha      String
+  commitMessage  String?
+  commitAuthor   String?
+  branch         String
+  trigger        String
+  triggeredById  String?
+  buildLogPath   String?
+  artifactPath   String?
+  urlPreview     String?
+  urlProduction  String?
+  queuedAt       DateTime     @default(now())
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  durationMs     Int?
+  errorMessage   String?
+
+  site           Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  logs           DeploymentLog[]
+
+  @@index([siteId, queuedAt])
+  @@index([status])
+}
+
+model DeploymentLog {
+  id           String   @id @default(cuid())
+  deploymentId String
+  seq          Int
+  stream       String
+  message      String
+  timestamp    DateTime @default(now())
+
+  deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@index([deploymentId, seq])
+}
+
+enum DomainKind {
+  APEX
+  SUBDOMAIN
+  WILDCARD
+  PREVIEW
+}
+
+enum CertStatus {
+  NONE
+  PENDING
+  ISSUED
+  RENEWING
+  FAILED
+  EXPIRED
+}
+
+model Domain {
+  id            String     @id @default(cuid())
+  siteId        String
+  hostname      String     @unique
+  kind          DomainKind
+  isPrimary     Boolean    @default(false)
+  forceHttps    Boolean    @default(true)
+  certStatus    CertStatus @default(NONE)
+  certIssuedAt  DateTime?
+  certExpiresAt DateTime?
+  dnsVerified   Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  site          Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model DnsZone {
+  id       String      @id @default(cuid())
+  provider String
+  domain   String      @unique
+  records  DnsRecord[]
+}
+
+model DnsRecord {
+  id       String   @id @default(cuid())
+  zoneId   String
+  type     String
+  name     String
+  content  String
+  ttl      Int      @default(300)
+  priority Int?
+  proxied  Boolean  @default(false)
+
+  zone     DnsZone  @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@index([zoneId])
+}
+
+enum EnvScope {
+  PRODUCTION
+  PREVIEW
+  DEVELOPMENT
+  ALL
+}
+
+model EnvGroup {
+  id          String    @id @default(cuid())
+  siteId      String?
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  site        Site?     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  variables   EnvVariable[]
+
+  @@index([siteId])
+}
+
+model EnvVariable {
+  id        String   @id @default(cuid())
+  groupId   String
+  key       String
+  valueEnc  String
+  scope     EnvScope @default(ALL)
+  sensitive Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group     EnvGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, key, scope])
+}
+
+enum DbEngine {
+  POSTGRES
+  MONGO
+  MYSQL
+  MARIADB
+  REDIS
+  SQLITE
+}
+
+model HostedDatabase {
+  id          String   @id @default(cuid())
+  engine      DbEngine
+  name        String
+  version     String?
+  host        String   @default("127.0.0.1")
+  port        Int
+  username    String
+  passwordEnc String
+  sizeMb     Int       @default(0)
+  connections Int      @default(0)
+  lastBackupAt DateTime?
+  createdAt   DateTime @default(now())
+}
+
+enum ServiceKind {
+  SYSTEMD
+  DOCKER
+  PM2
+  SUPERVISORD
+}
+
+model ManagedService {
+  id          String      @id @default(cuid())
+  siteSlug    String?
+  kind        ServiceKind
+  identifier  String
+  displayName String
+  state       String      @default("unknown")
+  cpu         Float       @default(0)
+  memMb       Int         @default(0)
+  uptime      String      @default("-")
+  createdAt   DateTime    @default(now())
+
+  @@unique([kind, identifier])
+}
+
+model LogStream {
+  id         String   @id @default(cuid())
+  siteId     String?
+  source     String
+  identifier String
+  level      String
+  retention  String   @default("7d")
+
+  site       Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model LogEntry {
+  id         String   @id @default(cuid())
+  source     String
+  level      String
+  siteSlug   String?
+  message    String
+  timestamp  DateTime @default(now())
+
+  @@index([source, timestamp])
+  @@index([siteSlug, timestamp])
+}
+
+model Incident {
+  id           String   @id @default(cuid())
+  severity     String
+  message      String
+  open         Boolean  @default(true)
+  acknowledged Boolean  @default(false)
+  openedAt     DateTime @default(now())
+  closedAt     DateTime?
+}
+
+model FirewallRule {
+  id        String   @id @default(cuid())
+  action    String
+  direction String   @default("in")
+  port      String
+  protocol  String
+  source    String
+  comment   String?
+  enabled   Boolean  @default(true)
+  order     Int      @default(100)
+  createdAt DateTime @default(now())
+}
+
+model Backup {
+  id         String   @id @default(cuid())
+  kind       String
+  target     String
+  path       String
+  sizeBytes  BigInt
+  status     String
+  createdAt  DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  targetKind String?
+  targetId   String?
+  payload    Json     @default("{}")
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([action])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  siteSlug  String
+  kind      String
+  path      String?
+  referrer  String?
+  country   String?
+  device    String?
+  timestamp DateTime @default(now())
+
+  @@index([siteSlug, timestamp])
+}
+
+model FileEntry {
+  id        String   @id @default(cuid())
+  siteSlug  String
+  path      String
+  kind      String
+  sizeBytes BigInt   @default(0)
+  modAt     DateTime @default(now())
+  sensitive Boolean  @default(false)
+
+  @@unique([siteSlug, path])
+}
+
+model BannedIp {
+  id          String    @id @default(cuid())
+  ip          String    @unique
+  reason      String
+  bannedUntil DateTime?
+  permanent   Boolean   @default(false)
+  source      String
+  createdAt   DateTime  @default(now())
+}
+
+model StripeAccount {
+  id              String   @id
+  livemode        Boolean
+  displayName     String?
+  email           String?
+  country         String?
+  defaultCurrency String?
+  lastSyncAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model StripeCustomer {
+  id        String   @id
+  email     String?
+  name      String?
+  created   DateTime
+  balance   Int      @default(0)
+  currency  String?
+  metadata  Json     @default("{}")
+  syncedAt  DateTime @default(now())
+}
+
+model StripeProduct {
+  id             String   @id
+  name           String
+  description    String?
+  active         Boolean
+  created        DateTime
+  defaultPriceId String?
+  metadata       Json     @default("{}")
+  prices         StripePrice[]
+  syncedAt       DateTime @default(now())
+}
+
+model StripePrice {
+  id         String        @id
+  productId  String
+  currency   String
+  unitAmount Int
+  type       String
+  recurring  Json?
+  active     Boolean
+  product    StripeProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  syncedAt   DateTime      @default(now())
+
+  @@index([productId])
+}
+
+model StripePayment {
+  id             String   @id
+  amount         Int
+  amountCaptured Int
+  currency       String
+  status         String
+  description    String?
+  customerId     String?
+  customerEmail  String?
+  paymentMethod  String?
+  created        DateTime
+  receiptUrl     String?
+  metadata       Json     @default("{}")
+  syncedAt       DateTime @default(now())
+
+  @@index([created])
+  @@index([status])
+}
+
+model StripeSubscription {
+  id                 String    @id
+  customerId         String
+  status             String
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  items              Json      @default("[]")
+  created            DateTime
+  canceledAt         DateTime?
+  metadata           Json      @default("{}")
+  syncedAt           DateTime  @default(now())
+}
+
+model StripeBalance {
+  id        String   @id @default(cuid())
+  available Json
+  pending   Json
+  currency  String
+  syncedAt  DateTime @default(now())
+}
