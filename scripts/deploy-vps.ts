@@ -99,7 +99,8 @@ async function main() {
   await uploadFile(c, tarPath, `${REMOTE_ROOT}/tarball.tgz`);
   console.log("  upload OK");
 
-  console.log("\n==== 3. Extract ====");
+  console.log("\n==== 3. Extract (clean stale source first) ====");
+  await run(c, `cd ${REMOTE_ROOT} && rm -rf app components lib src prisma scripts public types .next auth.ts middleware.ts instrumentation.ts instrumentation.node.ts next.config.ts next-env.d.ts package.json pnpm-lock.yaml tsconfig.json tsconfig.tsbuildinfo .gitignore .env.example`);
   await run(c, `cd ${REMOTE_ROOT} && tar xzf tarball.tgz && rm tarball.tgz && ls -la | head -20`);
 
   console.log("\n==== 4. Start Docker Postgres+Redis (loopback only) ====");
@@ -154,7 +155,7 @@ chmod 600 ${REMOTE_ROOT}/.env.local`);
   console.log("\n==== 7. DB push + seed ====");
 
   await run(c, `for i in 1 2 3 4 5 6 7 8 9 10; do docker exec vpsmgr-postgres pg_isready -U vpsmgr -d vps_manager -q && break; sleep 2; done`);
-  await run(c, `cd ${REMOTE_ROOT} && pnpm db:push 2>&1 | tail -10`, { timeout: 120000 });
+  await run(c, `cd ${REMOTE_ROOT} && pnpm db:push --accept-data-loss 2>&1 | tail -10`, { timeout: 120000 });
   await run(c, `cd ${REMOTE_ROOT} && pnpm db:seed 2>&1 | tail -10`, { timeout: 120000 });
 
   console.log("\n==== 8. Next.js build ====");
