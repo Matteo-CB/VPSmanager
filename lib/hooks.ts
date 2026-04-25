@@ -186,27 +186,6 @@ export function useMachineInfo() {
   });
 }
 
-export type AnalyticsResp = {
-  overall: {
-    totalDeploys: number; deploys30d: number; ready30d: number; failed30d: number;
-    successRate: number | null; avgDurationMs: number | null;
-    activeSites: number; totalSites: number;
-  };
-  deploysPerDay: { date: string; ready: number; failed: number; other: number }[];
-  topSites: { slug: string; name: string; domain: string | null; count: number; lastAt: string | null }[];
-  services: { running: number; failed: number; stopped: number; total: number };
-  sslExpiringSoon: { hostname: string; expiresAt: string; daysLeft: number; status: string }[];
-  logsBySource24h: { source: string; count: number }[];
-};
-
-export function useAnalytics() {
-  return useQuery({
-    queryKey: ["analytics"],
-    queryFn: () => apiGet<AnalyticsResp>("/api/analytics"),
-    refetchInterval: 30_000,
-  });
-}
-
 export function useTerminalExec() {
   const qc = useQueryClient();
   return useMutation({

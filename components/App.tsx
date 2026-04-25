@@ -19,7 +19,6 @@ import { DnsScreen } from "./screens/DNS";
 import { ServicesScreen } from "./screens/Services";
 import { SettingsScreen } from "./screens/Settings";
 import { StripeScreen } from "./screens/Stripe";
-import { AnalyticsScreen } from "./screens/Analytics";
 
 import type { Route, ScreenId } from "@/lib/route";
 
@@ -104,7 +103,6 @@ export function App() {
     case "dns":         content = <DnsScreen/>; break;
     case "settings":    content = <SettingsScreen/>; break;
     case "stripe":      content = <StripeScreen/>; break;
-    case "analytics":   content = <AnalyticsScreen go={go}/>; break;
     default:            content = <DashboardScreen go={go}/>;
   }
 

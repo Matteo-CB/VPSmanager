@@ -10,7 +10,6 @@ export const NAV: { group: string; items: NavItem[] }[] = [
     { id: "dashboard", label: "Vue d'ensemble", icon: "dashboard" },
     { id: "sites",     label: "Sites",          icon: "sites" },
     { id: "deployments", label: "Déploiements", icon: "deployments" },
-    { id: "analytics", label: "Analytics",      icon: "analytics" },
     { id: "logs",      label: "Logs",           icon: "logs" },
     { id: "terminal",  label: "Terminal",       icon: "terminal" },
   ]},
