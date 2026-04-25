@@ -20,10 +20,6 @@ export function DnsScreen() {
         eyebrow={`${zones.length} zones gérées par le panel`}
         title="DNS"
         sub={zones.reduce((s, z) => s + z.records, 0) ? `${zones.reduce((s, z) => s + z.records, 0)} records au total` : ""}
-        actions={<>
-          <Button size="sm" variant="ghost" icon="download">Exporter zone</Button>
-          <Button size="sm" variant="secondary" icon="plus">Ajouter un enregistrement</Button>
-        </>}
       />
       <div style={{ padding: "24px 28px 96px", display: "grid", gridTemplateColumns: "280px 1fr", gap: 14 }}>
         <Card pad={false}>

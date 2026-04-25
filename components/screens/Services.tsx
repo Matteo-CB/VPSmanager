@@ -35,13 +35,6 @@ export function ServicesScreen() {
             { label: "Uptime", width: 100, align: "right", render: r => <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)" }}>{r.uptime}</span> },
             { label: "CPU",  width: 70, align: "right", render: r => <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: r.cpu > 10 ? "var(--warn)" : "var(--text-2)" }}>{r.cpu.toFixed(1)}%</span> },
             { label: "Mem",  width: 80, align: "right", render: r => <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)" }}>{r.mem} MB</span> },
-            { label: "", width: 180, render: r => (
-              <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
-                <Button size="sm" variant="ghost" icon="refresh" title="Restart"/>
-                <Button size="sm" variant="ghost" icon="logs" title="Logs"/>
-                <Button size="sm" variant="ghost" icon={r.state === "running" ? "pause" : "play"} title={r.state === "running" ? "Stop" : "Start"}/>
-              </div>
-            )},
           ]} rows={rows}/>
         </Card>
       </div>

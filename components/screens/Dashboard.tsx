@@ -46,12 +46,7 @@ export function DashboardScreen({ go }: { go: Go }) {
         eyebrow={`${hostname} · ${kernel}`}
         title={greeting}
         sub={`Uptime ${uptime} · ${sites.length} sites · ${incidents.filter(i=>i.open).length} incidents`}
-        actions={
-          <>
-            <Button icon="refresh" variant="ghost" size="sm" onClick={() => { sysQ.refetch(); sitesQ.refetch(); }}/>
-            <Button icon="command" variant="secondary" size="sm">Cmd+K</Button>
-          </>
-        }
+        actions={<Button icon="refresh" variant="ghost" size="sm" onClick={() => { sysQ.refetch(); sitesQ.refetch(); }}>Rafraîchir</Button>}
       />
 
       <div style={{ padding: "24px 28px 96px", display: "flex", flexDirection: "column", gap: 24 }}>
@@ -98,7 +93,7 @@ export function DashboardScreen({ go }: { go: Go }) {
             </div>
           </Card>
 
-          <Card title="Incidents" actions={<Button size="sm" variant="ghost" iconRight="arrow-right">Tout voir</Button>} pad={false}>
+          <Card title="Incidents" pad={false}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {incidents.length === 0 && <div style={{ padding: "24px 20px", color: "var(--text-3)", fontSize: 13 }}>Aucun incident.</div>}
               {incidents.map((i, idx) => (
@@ -121,10 +116,7 @@ export function DashboardScreen({ go }: { go: Go }) {
           <Card
             title="Sites"
             subtitle={`${sites.filter(s=>s.status==="ACTIVE").length} actifs · ${sites.filter(s=>s.status==="BUILDING").length} en build · ${sites.filter(s=>s.status==="FAILED").length} échoué`}
-            actions={<>
-              <Button size="sm" variant="ghost" icon="search"/>
-              <Button size="sm" variant="secondary" icon="plus">Nouveau</Button>
-            </>}
+            actions={<Button size="sm" variant="ghost" iconRight="arrow-right" onClick={() => go("sites")}>Tous les sites</Button>}
             pad={false}
           >
             <Table<Site>

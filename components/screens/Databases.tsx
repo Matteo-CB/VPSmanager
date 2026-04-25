@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { PageHeader, Card, Button, Table, StatusDot, EmptyState } from "../ui/primitives";
+import { PageHeader, Card, Table, StatusDot, EmptyState } from "../ui/primitives";
 import { Icon } from "../ui/Icon";
 import { useDatabases, useDatabaseTables, useDatabaseDumps, Database } from "@/lib/hooks";
 import { Field } from "./SiteDetail";
@@ -21,10 +21,6 @@ export function DatabasesScreen() {
         eyebrow={dbsQ.data ? `${[...new Set(dbs.map(d => d.engine))].join(" · ")}` : ""}
         title="Bases de données"
         sub={`${dbs.length} bases`}
-        actions={<>
-          <Button size="sm" variant="ghost" icon="backup">Backups</Button>
-          <Button size="sm" variant="secondary" icon="plus">Créer une base</Button>
-        </>}
       />
 
       <div style={{ padding: "24px 28px 96px", display: "grid", gridTemplateColumns: "320px 1fr", gap: 14 }}>
@@ -80,11 +76,6 @@ function DbDetail({ selected, tables, tablesNote, dumps }: {
           <div style={{ fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>{selected.engine} · {selected.version}</div>
           <div style={{ fontFamily: "var(--serif)", fontSize: 32, letterSpacing: "-0.01em", marginTop: 4 }}>{selected.name}</div>
           <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-3)", marginTop: 6 }}>{connString}{selected.name}</div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Button size="sm" variant="ghost" icon="download">Dump</Button>
-          <Button size="sm" variant="ghost" icon="key">Credentials</Button>
-          <Button size="sm" variant="secondary" icon="play">Query console</Button>
         </div>
       </div>
       <div style={{ padding: 20, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>

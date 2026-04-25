@@ -15,13 +15,14 @@ export function SettingsScreen() {
   const [tab, setTab] = React.useState("machine");
   const usersQ = useSettingsUsers();
   const me = useMe();
+  const isAdmin = me.data?.user?.role === "ADMIN";
   const tabs = [
     { id: "machine", label: "Machine" },
     { id: "users", label: "Utilisateurs", count: usersQ.data?.length ?? 0 },
     { id: "firewall", label: "Firewall" },
     { id: "backups", label: "Backups" },
     { id: "keys", label: "Clés & tokens" },
-    { id: "github", label: "GitHub" },
+    ...(isAdmin ? [{ id: "github", label: "GitHub" }] : []),
   ];
 
   return (
@@ -33,7 +34,7 @@ export function SettingsScreen() {
         {tab === "firewall" && <FirewallTab/>}
         {tab === "backups" && <BackupsTab/>}
         {tab === "keys" && <KeysTab/>}
-        {tab === "github" && <GithubTab/>}
+        {tab === "github" && isAdmin && <GithubTab/>}
       </div>
     </div>
   );
@@ -59,7 +60,7 @@ function MachineTab() {
 
 function UsersTab({ users }: { users: SettingsUser[] }) {
   return (
-    <Card title="Comptes" subtitle={`${users.length} compte${users.length > 1 ? "s" : ""}`} pad={false} actions={<Button size="sm" variant="secondary" icon="plus">Inviter</Button>}>
+    <Card title="Comptes" subtitle={`${users.length} compte${users.length > 1 ? "s" : ""}`} pad={false}>
       <Table<SettingsUser> columns={[
         { label: "Nom", render: r => (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -82,7 +83,7 @@ function FirewallTab() {
   const fwQ = useFirewall();
   const f2bQ = useFail2ban();
   return <>
-    <Card title="Règles entrantes" subtitle={`ufw · ${fwQ.data?.length ?? 0} règles`} pad={false} actions={<Button size="sm" variant="secondary" icon="plus">Ajouter une règle</Button>}>
+    <Card title="Règles entrantes" subtitle={`ufw · ${fwQ.data?.length ?? 0} règles`} pad={false}>
       <Table<FirewallRule> columns={[
         { label: "Action", width: 90, render: r => <span style={{ fontSize: 11, letterSpacing: "0.06em", color: r.action === "ALLOW" ? "var(--ok)" : "var(--err)", textTransform: "uppercase" }}>{r.action}</span> },
         { label: "Port", width: 100, render: r => <span style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{r.port}</span> },
@@ -121,7 +122,7 @@ function BackupsTab() {
 function KeysTab() {
   const tokens = useApiTokens();
   return (
-    <Card title="Clés API & tokens" subtitle="Utilisés par la CLI et les webhooks" pad={false} actions={<Button size="sm" variant="secondary" icon="plus">Générer</Button>}>
+    <Card title="Clés API & tokens" subtitle="Utilisés par la CLI et les webhooks" pad={false}>
       {(tokens.data ?? []).length === 0
         ? <div style={{ padding: 20, color: "var(--text-4)", fontSize: 12 }}>Aucune clé.</div>
         : <Table<KeyRow> columns={[

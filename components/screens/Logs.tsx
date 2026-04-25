@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { PageHeader, Card, Input, Segmented, Button, EmptyState } from "../ui/primitives";
+import { PageHeader, Card, Input, Segmented, Button } from "../ui/primitives";
 import { useLogs, LogLine } from "@/lib/hooks";
 
 export function LogStream({ height = 580, siteSlug }: { height?: number; siteSlug?: string }) {
@@ -69,9 +69,6 @@ export function LogsScreen() {
         eyebrow="journalctl · nginx · app · systemd · docker · pm2"
         title="Logs"
         sub="Flux unifié temps réel"
-        actions={<>
-          <Button size="sm" variant="ghost" icon="bell">Créer une alerte</Button>
-        </>}
       />
       <div style={{ padding: "24px 28px 96px" }}>
         <LogStream height={620}/>
@@ -79,5 +76,3 @@ export function LogsScreen() {
     </div>
   );
 }
-
-void EmptyState;

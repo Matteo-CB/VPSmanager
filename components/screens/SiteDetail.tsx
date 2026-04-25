@@ -26,6 +26,8 @@ type EnvVar = { id: string; key: string; scope: string; sensitive: boolean; mask
 
 export function SiteDetailScreen({ slug, go }: { slug?: string; go: Go }) {
   const qc = useQueryClient();
+  const me = useMe();
+  const isAdmin = me.data?.user?.role === "ADMIN";
   const siteQ = useQuery({
     enabled: !!slug,
     queryKey: ["site-detail", slug],
@@ -84,8 +86,7 @@ export function SiteDetailScreen({ slug, go }: { slug?: string; go: Go }) {
         </span>}
         actions={<>
           {site.domainPrimary && <a href={`https://${site.domainPrimary}`} target="_blank" rel="noreferrer"><Button variant="ghost" icon="external" size="sm">Visiter</Button></a>}
-          <Button variant="secondary" icon="rollback" size="sm">Rollback</Button>
-          <Button variant="primary" icon="deployments" size="sm" onClick={() => redeploy.mutate()} disabled={redeploy.isPending}>{redeploy.isPending ? "Déploiement…" : "Redéployer"}</Button>
+          {isAdmin && <Button variant="primary" icon="deployments" size="sm" onClick={() => redeploy.mutate()} disabled={redeploy.isPending}>{redeploy.isPending ? "Déploiement…" : "Redéployer"}</Button>}
         </>}
         tabs={tabs} activeTab={tab} onTab={setTab}
       />
@@ -162,7 +163,7 @@ function SiteOverview({ site, deploys, go }: { site: SiteResp["site"]; deploys: 
         </Card>
       </div>
 
-      <Card title="Déploiements récents" actions={<Button size="sm" variant="ghost" iconRight="arrow-right">Tout voir</Button>} pad={false}>
+      <Card title="Déploiements récents" pad={false}>
         <Table<SiteResp["site"]["deployments"][number]>
           onRowClick={(r) => go("deployment", r.id)}
           columns={[
@@ -222,10 +223,6 @@ function SiteEnv({ slug, vars }: { slug: string; vars: EnvVar[] }) {
       <Card
         title="Variables d'environnement"
         subtitle={isAdmin ? "Chiffrées au repos. Révélation auditée." : "Lecture seule · role USER ne peut pas révéler les secrets."}
-        actions={isAdmin ? <>
-          <Button size="sm" variant="ghost" icon="upload">Importer .env</Button>
-          <Button size="sm" variant="secondary" icon="plus">Ajouter</Button>
-        </> : null}
         pad={false}
       >
         <Table<EnvVar>
@@ -255,7 +252,7 @@ function SiteEnv({ slug, vars }: { slug: string; vars: EnvVar[] }) {
 function SiteDomains({ site }: { site: SiteResp["site"] }) {
   return (
     <div style={{ padding: "24px 28px 96px", display: "flex", flexDirection: "column", gap: 14 }}>
-      <Card title="Domaines" actions={<Button size="sm" variant="secondary" icon="plus">Ajouter</Button>} pad={false}>
+      <Card title="Domaines" pad={false}>
         <Table<SiteResp["site"]["domains"][number]>
           columns={[
             { label: "Domaine", render: r => (

@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader, Input, Segmented, Button, Card, Table, StatusDot } from "../ui/primitives";
 import { Icon } from "../ui/Icon";
 import { frameworkIcon, frameworkLabel } from "@/lib/data";
-import { useSites, Site } from "@/lib/hooks";
+import { useSites, useMe, Site } from "@/lib/hooks";
 import type { Go } from "@/lib/route";
 import { NewSiteWizard } from "./NewSiteWizard";
 
@@ -15,6 +15,8 @@ export function SitesScreen({ go }: { go: Go }) {
   const [wizardOpen, setWizardOpen] = React.useState(false);
   const qc = useQueryClient();
   const sitesQ = useSites();
+  const me = useMe();
+  const isAdmin = me.data?.user?.role === "ADMIN";
   const allSites = sitesQ.data ?? [];
 
   const sites = allSites.filter((s) => {
@@ -34,7 +36,7 @@ export function SitesScreen({ go }: { go: Go }) {
             <Input icon="search" placeholder="Chercher un site…" value={q} onChange={setQ} style={{ width: 240 }}/>
             <Segmented options={[{label:"Tous",value:"all"},{label:"Actifs",value:"ACTIVE"},{label:"Build",value:"BUILDING"},{label:"Échec",value:"FAILED"},{label:"Pause",value:"PAUSED"}]} value={statusFilter} onChange={setStatusFilter}/>
             <Segmented size="sm" options={[{label:"Liste",value:"list"},{label:"Grille",value:"grid"}]} value={view} onChange={v => setView(v as "list" | "grid")}/>
-            <Button variant="primary" icon="plus" size="sm" onClick={() => setWizardOpen(true)}>Nouveau site</Button>
+            {isAdmin && <Button variant="primary" icon="plus" size="sm" onClick={() => setWizardOpen(true)}>Nouveau site</Button>}
           </>
         }
       />

@@ -73,14 +73,9 @@ export function DeploymentScreen({ id, go }: { id?: string; go: Go }) {
           <span>· {formatDuration(dep.durationMs)}</span>
           <span>· {relative(dep.queuedAt)}</span>
         </span>}
-        actions={<>
-          {isLive && <Button size="sm" variant="destructive" icon="stop">Annuler</Button>}
-          {dep.status === "READY" && <>
-            {dep.site.domainPrimary && <a href={`https://${dep.site.domainPrimary}`} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" icon="external">Visiter</Button></a>}
-            <Button size="sm" variant="secondary" icon="rollback">Rollback</Button>
-          </>}
-          {(dep.status === "ERROR" || dep.status === "FAILED") && <Button size="sm" variant="primary" icon="refresh">Relancer</Button>}
-        </>}
+        actions={dep.status === "READY" && dep.site.domainPrimary
+          ? <a href={`https://${dep.site.domainPrimary}`} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" icon="external">Visiter</Button></a>
+          : null}
       />
 
       <div style={{ padding: "24px 28px 96px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -123,10 +118,7 @@ export function DeploymentsScreen({ go }: { go: Go }) {
       <PageHeader
         title="Déploiements"
         sub="Journal unifié de tous les sites"
-        actions={<>
-          <Input icon="search" placeholder="Commit, message, site…" value={q} onChange={setQ} style={{ width: 280 }}/>
-          <Segmented options={[{label:"Tous",value:"all"},{label:"Production",value:"prod"},{label:"Preview",value:"prev"}]} value="all" onChange={()=>{}}/>
-        </>}
+        actions={<Input icon="search" placeholder="Commit, message, site…" value={q} onChange={setQ} style={{ width: 280 }}/>}
       />
       <div style={{ padding: "24px 28px 96px" }}>
         <Card pad={false}>

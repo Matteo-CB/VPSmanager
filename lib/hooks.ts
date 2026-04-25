@@ -186,28 +186,24 @@ export function useMachineInfo() {
   });
 }
 
-export function useAnalytics(site?: string, hours: number = 24) {
-  const p = new URLSearchParams();
-  if (site) p.set("site", site);
-  p.set("hours", String(hours));
-  return useQuery({
-    queryKey: ["analytics", site ?? "all", hours],
-    queryFn: () => apiGet<{ hourly: { h: string; v: number }[]; topPages: { path: string; views: number; uniq: number }[]; total: number; hours: number }>(`/api/analytics?${p.toString()}`),
-  });
-}
+export type AnalyticsResp = {
+  overall: {
+    totalDeploys: number; deploys30d: number; ready30d: number; failed30d: number;
+    successRate: number | null; avgDurationMs: number | null;
+    activeSites: number; totalSites: number;
+  };
+  deploysPerDay: { date: string; ready: number; failed: number; other: number }[];
+  topSites: { slug: string; name: string; domain: string | null; count: number; lastAt: string | null }[];
+  services: { running: number; failed: number; stopped: number; total: number };
+  sslExpiringSoon: { hostname: string; expiresAt: string; daysLeft: number; status: string }[];
+  logsBySource24h: { source: string; count: number }[];
+};
 
-export function useAnalyticsDistribution(site?: string) {
-  const qs = site ? `?site=${site}` : "";
+export function useAnalytics() {
   return useQuery({
-    queryKey: ["analytics-dist", site ?? "all"],
-    queryFn: () => apiGet<{ countries: { k: string; v: number }[]; devices: { k: string; v: number }[]; sources: { k: string; v: number }[] }>(`/api/analytics/distribution${qs}`),
-  });
-}
-
-export function useAnalyticsBySite(hours: number = 24) {
-  return useQuery({
-    queryKey: ["analytics-sites", hours],
-    queryFn: () => apiGet<{ data: { slug: string; name: string; domain: string | null; views: number }[]; hours: number }>(`/api/analytics/sites?hours=${hours}`),
+    queryKey: ["analytics"],
+    queryFn: () => apiGet<AnalyticsResp>("/api/analytics"),
+    refetchInterval: 30_000,
   });
 }
 
