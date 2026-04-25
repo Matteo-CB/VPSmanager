@@ -1,9 +1,19 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, ok } from "@/lib/api";
+import { isAdmin } from "@/lib/rbac";
+
+const IPV4 = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+const IPV6 = /\b(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}\b/g;
+const EMAIL = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+
+function censor(msg: string): string {
+  return msg.replace(EMAIL, "***@***").replace(IPV4, "x.x.x.x").replace(IPV6, "x:x:x:x");
+}
 
 export async function GET(req: NextRequest) {
   try {
+    const admin = await isAdmin();
     const source = req.nextUrl.searchParams.get("source");
     const level = req.nextUrl.searchParams.get("level");
     const q = req.nextUrl.searchParams.get("q")?.toLowerCase();
@@ -27,7 +37,7 @@ export async function GET(req: NextRequest) {
         t: l.timestamp.toISOString().slice(11, 23),
         src: l.source,
         lvl: l.level,
-        msg: l.message,
+        msg: admin ? l.message : censor(l.message),
       })),
     });
   } catch (e) { return errorResponse(e); }

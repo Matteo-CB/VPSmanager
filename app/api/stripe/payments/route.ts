@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, ok } from "@/lib/api";
+import { isAdmin } from "@/lib/rbac";
 
 export async function GET(req: NextRequest) {
   try {
+    const admin = await isAdmin();
     const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") ?? 50), 200);
     const status = req.nextUrl.searchParams.get("status");
     const payments = await prisma.stripePayment.findMany({
@@ -20,10 +22,10 @@ export async function GET(req: NextRequest) {
         status: p.status,
         description: p.description,
         customerId: p.customerId,
-        customerEmail: p.customerEmail,
+        customerEmail: admin ? p.customerEmail : (p.customerEmail ? "***@***" : null),
         paymentMethod: p.paymentMethod,
         created: p.created,
-        receiptUrl: p.receiptUrl,
+        receiptUrl: admin ? p.receiptUrl : null,
       })),
     });
   } catch (e) { return errorResponse(e); }

@@ -25,3 +25,12 @@ export async function requireAdmin(): Promise<SessionUser> {
 export async function requireUser(): Promise<SessionUser> {
   return getSessionUser();
 }
+
+export async function isAdmin(): Promise<boolean> {
+  try {
+    const u = await getSessionUser();
+    return u.role === "ADMIN";
+  } catch {
+    return false;
+  }
+}
